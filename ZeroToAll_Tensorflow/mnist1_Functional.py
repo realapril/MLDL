@@ -36,23 +36,20 @@ train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels))
 test_dataset = tf.data.Dataset.from_tensor_slices((test_images, test_labels)).batch(batch_size)
 ##########################################################################
 
-## 3. NN Model 만들기 #########################################################
+## 3. NN Model 만들기 - Functional #########################################################
 def create_model():
-    model = keras.Sequential() #sequencial API - 순서대로 레이어 쌓음
-    model.add(keras.layers.Conv2D(filters=32, kernel_size=3, activation=tf.nn.relu, padding='SAME', 
-                                  input_shape=(28, 28, 1)))#첫 레이어엔 input_shape써야함
-    model.add(keras.layers.MaxPool2D(padding='SAME')) #2x2 size &stride 2 is default
-    model.add(keras.layers.Conv2D(filters=64, kernel_size=3, activation=tf.nn.relu, padding='SAME'))
-    model.add(keras.layers.MaxPool2D(padding='SAME'))
-    model.add(keras.layers.Conv2D(filters=128, kernel_size=3, activation=tf.nn.relu, padding='SAME'))
-    model.add(keras.layers.MaxPool2D(padding='SAME'))
-    #fully connected Layer
-    model.add(keras.layers.Flatten()) #vector 피는부분
-    model.add(keras.layers.Dense(256, activation=tf.nn.relu))
-    model.add(keras.layers.Dropout(0.4)) #dense layer파라미터가 너무 많아서 조금 떨어트림
-    model.add(keras.layers.Dense(10))
-    return model
-
+    inputs = keras.Input(shape=(28, 28, 1)) #input layer 선언
+    conv1 = keras.layers.Conv2D(filters=32, kernel_size=[3, 3], padding='SAME', activation=tf.nn.relu)(inputs)#inputs 에 올립니다
+    pool1 = keras.layers.MaxPool2D(padding='SAME')(conv1) #pool1의 인풋이 conv1입니다라고 알려야함
+    conv2 = keras.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='SAME', activation=tf.nn.relu)(pool1)
+    pool2 = keras.layers.MaxPool2D(padding='SAME')(conv2)
+    conv3 = keras.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='SAME', activation=tf.nn.relu)(pool2)
+    pool3 = keras.layers.MaxPool2D(padding='SAME')(conv3)
+    pool3_flat = keras.layers.Flatten()(pool3)
+    dense4 = keras.layers.Dense(units=256, activation=tf.nn.relu)(pool3_flat)
+    drop4 = keras.layers.Dropout(rate=0.4)(dense4)
+    logits = keras.layers.Dense(units=10)(drop4)
+    return keras.Model(inputs=inputs, outputs=logits)
 
 
 model = create_model()
